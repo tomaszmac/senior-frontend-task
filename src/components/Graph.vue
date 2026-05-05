@@ -1,8 +1,4 @@
 <!--
-  Task 1 — Refactoring:
-    TYPE_COLORS below duplicates the same five keys as TYPE_LABELS in ChunkPanel.vue.
-    Extract both into a unified src/utils/types.js config and import from there.
-
   Task 2 — Algorithm: see the TODO block inside <script setup>.
 -->
 <template>
@@ -12,18 +8,9 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import ForceGraph from 'force-graph'
+import { DEFAULT_TYPE_COLOR, TYPE_COLORS } from '../utils/types.js'
 
-// Task 1: unify with TYPE_LABELS in ChunkPanel.vue → src/utils/types.js
-const TYPE_COLORS = {
-  process_stage:   '#4f8ef7',
-  machine_element: '#27ae60',
-  machine_part:    '#16a085',
-  procedure:       '#e67e22',
-  concept:         '#8e44ad',
-}
-const DEFAULT_COLOR = '#95a5a6'
-
-const props = defineProps({
+const { data, selectedSlug } = defineProps({
   data:         { type: Object, default: () => ({ nodes: [], links: [] }) },
   selectedSlug: { type: String, default: null },
   // Task 3: add filterQuery prop here and use it in nodeCanvasObject
@@ -35,12 +22,12 @@ const containerEl = ref(null)
 let fg = null
 
 function nodeColor(node) {
-  return TYPE_COLORS[node.type] || DEFAULT_COLOR
+  return TYPE_COLORS[node.type] || DEFAULT_TYPE_COLOR
 }
 
 onMounted(() => {
   fg = ForceGraph()(containerEl.value)
-    .graphData(props.data)
+    .graphData(data)
     .nodeId('slug')
     .nodeLabel('title')
     .linkColor(() => '#334455')
@@ -51,10 +38,10 @@ onMounted(() => {
     .backgroundColor('#1a1a2e')
     .onNodeClick(node => emit('select', node.slug))
     .nodeCanvasObject((node, ctx, globalScale) => {
-      const isSelected = node.slug === props.selectedSlug
-      // Task 3: compute match opacity here using props.filterQuery
-      // const isMatch = !props.filterQuery ||
-      //   node.title.toLowerCase().includes(props.filterQuery.toLowerCase())
+      const isSelected = node.slug === selectedSlug
+      // Task 3: compute match opacity here using filterQuery
+      // const isMatch = !filterQuery ||
+      //   node.title.toLowerCase().includes(filterQuery.toLowerCase())
       // ctx.globalAlpha = isMatch ? 1 : 0.15
 
       const color = nodeColor(node)
@@ -100,9 +87,9 @@ onUnmounted(() => {
   fg = null
 })
 
-watch(() => props.data, d => fg?.graphData(d))
+watch(() => data, d => fg?.graphData(d))
 
-watch(() => props.selectedSlug, slug => {
+watch(() => selectedSlug, slug => {
   if (!slug || !fg) return
   const node = fg.graphData().nodes.find(n => n.slug === slug)
   if (node?.x != null) fg.centerAt(node.x, node.y, 400)
@@ -114,7 +101,7 @@ watch(() => props.selectedSlug, slug => {
 // Add a "Path" toggle button (above or overlaid on the graph). When active:
 //
 //   1. Track a `pathStart` and `pathEnd` slug via two successive node clicks.
-//   2. Build an adjacency list from props.data.links (treat edges as undirected).
+//   2. Build an adjacency list from data.links (treat edges as undirected).
 //   3. Run BFS from pathStart to pathEnd; record the predecessor map to
 //      reconstruct the path.
 //   4. Expose the path as a Set of slugs and a Set of link ids.

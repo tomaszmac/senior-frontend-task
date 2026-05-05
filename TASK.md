@@ -1,52 +1,163 @@
 # Task Notes
 
-## Process
-- Checked `package.json`, `package-lock.json`, `npm audit`, and Vite/plugin compatibility before dependency update.
+## Task 1 - Refactor + i18n
 
-## AI Tool Use
+### Process
 
-Used OpenAI Codex as coding/review assistant.
+- Read `README.md`, `ARCHITECTURE.md`, `docs/INDEX.md`, `docs/quality.md`, and `.planning/phases/01-task-1-refactor-i18n/01-PLAN.md`.
+- Extracted duplicated `fmtTime()` into `src/utils/format.js`.
+- Moved node type colors and type-label translation keys into `src/utils/types.js`.
+- Added `vue-i18n` Composition API setup with Polish as the default locale and English fallback.
+- Moved UI copy into `src/locales/en.json` and `src/locales/pl.json`.
+- Added an `EN | PL` language switch in the header. It changes locale without reloading the page.
+- Left Task 2 BFS and Task 3 live search untouched.
+- Kept `src/data/mock.js` unchanged.
 
-Asked Codex to:
+### AI Tool Use
 
-## Feedback Given To AI
+Used OpenAI Codex as planning, coding, and review assistant.
 
-## Dependency Notes
+Prompt scope given to Codex:
 
-### Vite
+- execute README Task 1 only;
+- follow `AGENTS.md` and the project docs;
+- do not edit mock data;
+- keep changes minimal for the interview task;
+- use `TYPE_LABELS` as a type-to-i18n-key map, not as UI copy;
+- update `TASK.md`;
+- run `npm run build`;
+- keep `.idea/` and unrelated planning files out of the Task 1 commit.
+
+What worked well in the AI output:
+
+- It kept the Task 1 implementation scoped and did not implement Task 2/3.
+- It separated translatable UI copy from graph/type configuration.
+- It preserved the mock data file and used the README-defined build command.
+- The follow-up code review found no blocking or warning-level issues.
+
+Feedback given to AI:
+
+- Treat `TYPE_LABELS` as translation keys because Task 1b and Task 1c overlap.
+- Move app title, button titles, loading states, empty states, and node type labels into locale JSON.
+- Remove completed Task 1 TODO comments while keeping Task 2/3 TODO comments.
+- Keep the implementation small and reviewer-friendly.
+
+Selected prompts used:
+
+```text
+Use Harness Engineering to create a first-pass harness structure.
+
+Keep it compact. This is a small frontend/Vite project, so do not create empty folder theater.
+
+Create or update:
+- AGENTS.md as the short agent entrypoint
+- ARCHITECTURE.md as a small code map
+- docs/INDEX.md as the docs hub
+- docs/quality.md only if useful
+
+First inspect package.json, README.md, src/, and vite.config.js. Use real commands from package.json.
+Do not invent build, test, or run commands.
+
+For this kind of fresh task, the right output is probably:
+
+AGENTS.md
+ARCHITECTURE.md
+docs/
+  INDEX.md
+  quality.md
+
+Not a large article-style documentation tree. Collapse sections for a small project.
+```
+
+```text
+Plan README Task 1 as the first implementation phase.
+
+Read the local README and project docs first. Treat Task 1 as one commit containing:
+- 1a fmtTime extraction;
+- 1b shared type configuration;
+- 1c vue-i18n with Polish default locale and EN/PL runtime switch.
+
+Do not plan Task 2 BFS or Task 3 live search yet. Keep the plan detailed enough that another agent can execute it without making product or architecture decisions.
+```
+
+```text
+Check one technical decision before implementation:
+how should TYPE_LABELS work after adding vue-i18n?
+
+README Task 1b asks for TYPE_LABELS and TYPE_COLORS in src/utils/types.js.
+README Task 1c says node type labels from TYPE_LABELS must be translated.
+
+```
+
+```text
+Execute the plan in .planning/phases/01-task-1-refactor-i18n/01-PLAN.md.
+
+Scope:
+- implement README Task 1 only;
+- do not edit src/data/mock.js;
+- do not implement Task 2 or Task 3;
+- update TASK.md with process notes, AI usage, feedback, dependency justification, and verification;
+- run npm run build;
+- commit one atomic Task 1 change if verification passes.
+
+Keep changes small and reviewer-friendly. Do not stage .idea or unrelated planning files.
+```
+
+```text
+Run a GSD-style code review for the current Task 1 implementation.
+
+Review the working tree and latest commit for:
+- missed README acceptance criteria;
+- i18n or pluralization issues;
+- dependency/package consistency;
+- accidental changes to src/data/mock.js;
+- runtime or build problems.
+
+Do not fix code. Write findings with severity and file references, then run npm run build if feasible.
+```
+
+### Dependency Justification
+
+Added `vue-i18n@9.14.5` because README Task 1c explicitly requires `vue-i18n` v9 with Composition API support, runtime language switching, and pluralization.
+
+`npm install` warned that v9 is EOL/no longer supported upstream. I stayed on v9 to match the assignment requirement instead of silently upgrading to a newer major version.
+
+### Verification
+
+- `npm run build`: passed with Vite `8.0.5`.
+- First sandboxed build hit Windows `spawn EPERM`; rerun outside sandbox passed.
+- `src/data/mock.js`: unchanged.
+- GSD-style review for Task 1 reported: Critical `0`, Warning `0`, Info `1`; the Info finding was this delivery-log cleanup.
+
+## Earlier Setup Notes
+
+### Harness Structure
+
+Before feature work, I added compact agent/project docs:
+
+- `AGENTS.md`
+- `ARCHITECTURE.md`
+- `docs/INDEX.md`
+- `docs/quality.md`
+
+### Vite Audit Cleanup
+
+Before Task 1, I checked `package.json`, `package-lock.json`, `npm audit`, and Vite/plugin compatibility.
 
 `npm audit` reported moderate vulnerabilities through Vite/esbuild:
 
 - `esbuild <=0.24.2`: dev server request exposure (`GHSA-67mh-4wv8-2f99`);
 - `vite <=6.4.1`: optimized dependency source map path traversal (`GHSA-4w7w-66w2-5vf9`).
 
-Risk mostly dev-server side, not production bundle from `npm run build`.
-Risk highest when dev server exposed outside localhost, for example `vite --host`.
+Risk was mostly dev-server side, especially if the dev server were exposed outside localhost. I upgraded Vite instead of leaving audit warnings because this is a small interview project with a small dependency surface, and a clean audit is easier to review.
 
-I upgraded Vite instead of leaving audit warnings because this is small interview project, small dependency surface, and clean audit is easier to review.
-I did not blindly use `npm audit fix --force`; Vite 8 is major upgrade, so compatibility was checked.
-
-Final dependency state:
+Final setup dependency state:
 
 - `vite`: `8.0.5`
 - `@vitejs/plugin-vue`: `^6.0.6`
 
-`@vitejs/plugin-vue` was upgraded too because old `5.2.4` peer range supported only Vite `^5.0.0 || ^6.0.0`.
-
-### vue-i18n
-
-If added for Task 1c: required by assignment for Composition API i18n, runtime language switch, and pluralization.
-
-## Verification
+Verification for setup:
 
 - `npm ls vite @vitejs/plugin-vue`: OK, no invalid peer dependency.
 - `npm audit`: `found 0 vulnerabilities`.
 - `npm run build`: passed with Vite `8.0.5`.
-- `src/data/mock.js`: must remain unchanged.
-
-## Harness Structure
-
-Short setup commit before feature work.
-
-- Inspected `package.json`, `README.md`, `src/`, and `vite.config.js`.
-- Added compact agent/project docs: `AGENTS.md`, `ARCHITECTURE.md`, `docs/INDEX.md`, and `docs/quality.md`.

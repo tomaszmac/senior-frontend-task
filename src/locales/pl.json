@@ -1,0 +1,80 @@
+{
+  "app": {
+    "title": "Graf wiedzy wiki",
+    "tabs": {
+      "graph": "Graf",
+      "sources": "Pliki źródłowe"
+    },
+    "status": {
+      "chunks": {
+        "one": "{count} fragment",
+        "few": "{count} fragmenty",
+        "many": "{count} fragmentów",
+        "other": "{count} fragmentu"
+      },
+      "links": {
+        "one": "{count} link",
+        "few": "{count} linki",
+        "many": "{count} linków",
+        "other": "{count} linku"
+      }
+    },
+    "loading": "Ładowanie...",
+    "empty": "Wybierz węzeł, żeby zobaczyć szczegóły",
+    "language": {
+      "label": "Język",
+      "switchToEnglish": "Przełącz na angielski",
+      "switchToPolish": "Przełącz na polski"
+    }
+  },
+  "actions": {
+    "close": "Zamknij"
+  },
+  "common": {
+    "separator": " · ",
+    "missing": "—",
+    "partWithIndex": "Część {index}"
+  },
+  "nodeTypes": {
+    "processStage": "Etap procesu",
+    "machineElement": "Element maszyny",
+    "machinePart": "Część maszyny",
+    "procedure": "Procedura",
+    "concept": "Pojęcie"
+  },
+  "chunkPanel": {
+    "relatedChunks": "Powiązane fragmenty",
+    "linksTo": "Linkuje do",
+    "referencedBy": "Odwołania z",
+    "sources": "Źródła"
+  },
+  "partPanel": {
+    "sourcePart": "Część źródła"
+  },
+  "sources": {
+    "count": {
+      "one": "{count} plik źródłowy",
+      "few": "{count} pliki źródłowe",
+      "many": "{count} plików źródłowych",
+      "other": "{count} pliku źródłowego"
+    },
+    "parts": {
+      "one": "{count} część",
+      "few": "{count} części",
+      "many": "{count} części",
+      "other": "{count} części"
+    },
+    "meta": {
+      "path": "Ścieżka",
+      "sha256": "SHA-256"
+    },
+    "table": {
+      "index": "#",
+      "title": "Tytuł",
+      "start": "Start",
+      "end": "Koniec",
+      "duration": "Czas trwania",
+      "lang": "Język"
+    }
+  }
+}

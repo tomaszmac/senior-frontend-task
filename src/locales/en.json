@@ -1,0 +1,72 @@
+{
+  "app": {
+    "title": "Wiki Knowledge Graph",
+    "tabs": {
+      "graph": "Graph",
+      "sources": "Source Files"
+    },
+    "status": {
+      "chunks": {
+        "one": "{count} chunk",
+        "other": "{count} chunks"
+      },
+      "links": {
+        "one": "{count} link",
+        "other": "{count} links"
+      }
+    },
+    "loading": "Loading...",
+    "empty": "Select a node to explore",
+    "language": {
+      "label": "Language",
+      "switchToEnglish": "Switch to English",
+      "switchToPolish": "Switch to Polish"
+    }
+  },
+  "actions": {
+    "close": "Close"
+  },
+  "common": {
+    "separator": " · ",
+    "missing": "—",
+    "partWithIndex": "Part {index}"
+  },
+  "nodeTypes": {
+    "processStage": "Process Stage",
+    "machineElement": "Machine Element",
+    "machinePart": "Machine Part",
+    "procedure": "Procedure",
+    "concept": "Concept"
+  },
+  "chunkPanel": {
+    "relatedChunks": "Related Chunks",
+    "linksTo": "Links to",
+    "referencedBy": "Referenced by",
+    "sources": "Sources"
+  },
+  "partPanel": {
+    "sourcePart": "Source Part"
+  },
+  "sources": {
+    "count": {
+      "one": "{count} source file",
+      "other": "{count} source files"
+    },
+    "parts": {
+      "one": "{count} part",
+      "other": "{count} parts"
+    },
+    "meta": {
+      "path": "Path",
+      "sha256": "SHA-256"
+    },
+    "table": {
+      "index": "#",
+      "title": "Title",
+      "start": "Start",
+      "end": "End",
+      "duration": "Duration",
+      "lang": "Lang"
+    }
+  }
+}

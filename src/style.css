@@ -46,6 +46,39 @@ body {
   white-space: nowrap;
 }
 
+.language-switch {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  border: 1px solid #1a4a80;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.status + .language-switch {
+  margin-left: 0;
+}
+
+.language-option {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 8px;
+}
+
+.language-option:hover {
+  color: #ccc;
+}
+
+.language-option.active {
+  background: #0f3460;
+  color: #e8e8e8;
+}
+
 /* ── Tabs ────────────────────────────────────────────────────────────────── */
 
 .tabs {
