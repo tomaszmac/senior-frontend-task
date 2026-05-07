@@ -282,6 +282,42 @@ No new dependency was added for Task 3. The live search uses Vue state, computed
 - `git diff -- src/data/mock.js`: empty.
 - `git diff -- package.json package-lock.json`: empty.
 
+## Final Polish Pass
+
+### Process
+
+- Removed stale completed TODO comments from the Vue components so the submitted code no longer looks like unfinished task scaffolding.
+- Added cancellation guards to the async detail-panel watchers in `App.vue` and `SourcesView.vue`, so fast selection changes cannot render stale details after the simulated loading delay.
+- Extracted repeated UI colors into CSS custom properties in `src/style.css`.
+- Updated `Graph.vue` to read canvas/link/search colors from those CSS variables while keeping semantic node colors in `src/utils/types.js`.
+- Fixed narrow-viewport detail panels so the close button remains visible when a graph node or source part is selected.
+- Kept `src/data/mock.js` unchanged.
+
+### AI Tool Use
+
+Used OpenAI Codex for the review and cleanup pass. A dedicated worker subagent handled the CSS-variable extraction in `style.css` and `Graph.vue`, while the main agent handled stale TODO removal and async watcher hardening.
+
+Prompt scope given to the worker:
+
+```text
+Extract repeated UI colors into CSS custom properties in src/style.css.
+Update Graph.vue to consume those variables for graph background, links, search
+highlight, selected ring, and labels. Preserve the existing visual appearance,
+keep TYPE_COLORS for semantic node/path colors, remove stale completed TODO
+comments in Graph.vue, do not touch src/data/mock.js, and run npm run build.
+```
+
+### Dependency Justification
+
+No new dependency was added for the final polish pass.
+
+### Verification
+
+- `npm run build`: passed with Vite `8.0.5`.
+- Browser check at `425px` width: source-part detail panel opens as a full-width overlay and the close button remains visible.
+- `rg -n "TODO|Task 1|Task 2|Task 3" src`: no stale task comments remain.
+- `git diff -- src/data/mock.js`: empty.
+
 ## Earlier Setup Notes
 
 ### Harness Structure

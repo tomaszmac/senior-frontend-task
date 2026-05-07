@@ -1,8 +1,3 @@
-<!--
-  Task 1 — Refactoring:
-    • fmtTime() is duplicated here, in ChunkPanel.vue, and in SourcesView.vue.
-      Extract to src/utils/format.js and import it.
--->
 <template>
   <div class="chunk-panel">
     <div class="panel-header">
@@ -25,7 +20,6 @@
   </div>
 </template>
 
-// Task 1: extract to src/utils/format.js (also in ChunkPanel.vue and SourcesView.vue)
 <script setup>
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';

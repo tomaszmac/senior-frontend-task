@@ -13,16 +13,6 @@
       <span v-if="tab === 'graph'" class="status">
         {{ graphStatus }}
       </span>
-      <!--
-        TODO Task 3 — Live Graph Search
-        Add a search <input> here. Pass the query string down to <Graph> as a
-        new `filterQuery` prop. When the query is non-empty:
-          • Nodes whose title matches (case-insensitive) render at full opacity.
-          • All other nodes are dimmed to ~20% opacity inside nodeCanvasObject.
-          • Show "N matches" count here and an × clear button.
-        Keyboard: "/" focuses the input; Escape clears it.
-        Hint: no re-init needed — the canvas loop already reads props every frame.
-      -->
       <div v-if="tab === 'graph'" class="header-search">
         <div class="search-field">
           <input
@@ -172,13 +162,22 @@
     window.removeEventListener('keydown', handleGlobalKeydown);
   });
 
-  watch(selectedSlug, async (slug) => {
+  watch(selectedSlug, async (slug, _previousSlug, onCleanup) => {
+    let stale = false;
+    onCleanup(() => {
+      stale = true;
+    });
+
     if (!slug) {
       chunk.value = null;
+      chunkLoading.value = false;
       return;
     }
+
     chunkLoading.value = true;
     await new Promise(r => setTimeout(r, 80));
+    if (stale) return;
+
     chunk.value = getChunk(slug);
     chunkLoading.value = false;
   });

@@ -1,10 +1,3 @@
-<!--
-  Task 1 — Refactoring:
-    TYPE_COLORS below duplicates the same five keys as TYPE_LABELS in ChunkPanel.vue.
-    Extract both into a unified src/utils/types.js config and import from there.
-
-  Task 2 — Algorithm: see the TODO block inside <script setup>.
--->
 <template>
   <div class="graph-shell">
     <div ref="containerEl" class="graph-canvas" />
@@ -33,7 +26,7 @@ import { DEFAULT_TYPE_COLOR, TYPE_COLORS } from '../utils/types.js'
 const props = defineProps({
   data:         { type: Object, default: () => ({ nodes: [], links: [] }) },
   selectedSlug: { type: String, default: null },
-  // Task 3 - Live Graph Search: App.vue owns the header query; Graph.vue only renders it.
+  // App.vue owns the header query; Graph.vue only renders the graph highlight state.
   filterQuery: { type: String, default: '' },
 })
 const emit = defineEmits(['select'])
@@ -48,10 +41,33 @@ const pathLinkKeys = ref(new Set())
 const noPathFound = ref(false)
 const showNoPath = computed(() => pathModeActive.value && noPathFound.value)
 const PATH_HIGHLIGHT_COLOR = TYPE_COLORS.process_stage
-const SEARCH_MATCH_COLOR = '#7db3f7'
 const normalizedFilterQuery = computed(() => props.filterQuery.trim().toLowerCase())
 const hasActiveFilter = computed(() => normalizedFilterQuery.value.length > 0)
 let fg = null
+let graphColors = {
+  background: '#1a1a2e',
+  link: '#334455',
+  linkMuted: 'rgba(51, 68, 85, 0.25)',
+  searchMatch: '#7db3f7',
+  selectedRing: '#ffffff',
+  label: 'rgba(220, 220, 220, 0.85)',
+}
+
+function cssVar(styles, name, fallback) {
+  return styles.getPropertyValue(name).trim() || fallback
+}
+
+function loadGraphColors() {
+  const styles = getComputedStyle(document.documentElement)
+  graphColors = {
+    background: cssVar(styles, '--color-app-bg', graphColors.background),
+    link: cssVar(styles, '--color-graph-link', graphColors.link),
+    linkMuted: cssVar(styles, '--color-graph-link-muted', graphColors.linkMuted),
+    searchMatch: cssVar(styles, '--color-accent-blue', graphColors.searchMatch),
+    selectedRing: cssVar(styles, '--color-white', graphColors.selectedRing),
+    label: cssVar(styles, '--color-graph-label', graphColors.label),
+  }
+}
 
 function nodeColor(node) {
   return TYPE_COLORS[node.type] || DEFAULT_TYPE_COLOR
@@ -86,8 +102,8 @@ function isPathLink(link) {
 }
 
 function graphLinkColor(link) {
-  if (!isPathResolved()) return '#334455'
-  return isPathLink(link) ? PATH_HIGHLIGHT_COLOR : 'rgba(51, 68, 85, 0.25)'
+  if (!isPathResolved()) return graphColors.link
+  return isPathLink(link) ? PATH_HIGHLIGHT_COLOR : graphColors.linkMuted
 }
 
 function graphLinkWidth(link) {
@@ -215,6 +231,8 @@ function handleNodeClick(node) {
 }
 
 onMounted(() => {
+  loadGraphColors()
+
   fg = ForceGraph()(containerEl.value)
     .graphData(props.data)
     .nodeId('slug')
@@ -224,7 +242,7 @@ onMounted(() => {
     .linkDirectionalArrowLength(3)
     .linkDirectionalArrowRelPos(1)
     .linkLabel('label')
-    .backgroundColor('#1a1a2e')
+    .backgroundColor(graphColors.background)
     .onNodeClick(handleNodeClick)
     .nodeCanvasObject((node, ctx, globalScale) => {
       const pathResolved = isPathResolved()
@@ -253,7 +271,7 @@ onMounted(() => {
       if (isSearchMatch && !isSelected && !isPathHighlighted) {
         ctx.beginPath()
         ctx.arc(node.x, node.y, r + 3, 0, 2 * Math.PI)
-        ctx.strokeStyle = SEARCH_MATCH_COLOR
+        ctx.strokeStyle = graphColors.searchMatch
         ctx.lineWidth = 1
         ctx.stroke()
       }
@@ -261,7 +279,7 @@ onMounted(() => {
       if (isSelected || isPathHighlighted) {
         ctx.beginPath()
         ctx.arc(node.x, node.y, r + 1.75, 0, 2 * Math.PI)
-        ctx.strokeStyle = isPathHighlighted ? PATH_HIGHLIGHT_COLOR : '#ffffff'
+        ctx.strokeStyle = isPathHighlighted ? PATH_HIGHLIGHT_COLOR : graphColors.selectedRing
         ctx.lineWidth = isPathHighlighted ? 1.25 : 1.5
         ctx.stroke()
       }
@@ -269,7 +287,7 @@ onMounted(() => {
       if (globalScale >= 1.2) {
         const fontSize = Math.min(12 / globalScale, 3)
         ctx.font = `${fontSize}px Sans-Serif`
-        ctx.fillStyle = 'rgba(220,220,220,0.85)'
+        ctx.fillStyle = graphColors.label
         ctx.textAlign = 'center'
         ctx.fillText(node.title, node.x, node.y + r + fontSize + 1)
       }
@@ -306,30 +324,8 @@ watch(() => props.selectedSlug, slug => {
   if (node?.x != null) fg.centerAt(node.x, node.y, 400)
 })
 
-// Task 3 - Live Graph Search: nudge the canvas after query changes even when physics has settled.
+// Nudge the canvas after query changes even when physics has settled.
 watch(() => props.filterQuery, () => {
   refreshGraph()
 })
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TODO Task 2 — Shortest Path (BFS)
-//
-// Add a "Path" toggle button (above or overlaid on the graph). When active:
-//
-//   1. Track a `pathStart` and `pathEnd` slug via two successive node clicks.
-//   2. Build an adjacency list from props.data.links (treat edges as undirected).
-//   3. Run BFS from pathStart to pathEnd; record the predecessor map to
-//      reconstruct the path.
-//   4. Expose the path as a Set of slugs and a Set of link ids.
-//   5. In nodeCanvasObject: full opacity + bright ring for path nodes;
-//      dim (opacity 0.2) for all others.
-//   6. In linkColor / linkWidth: highlight path edges; dim the rest.
-//   7. If no path exists, show a "No path found" overlay.
-//   8. Toggling Path Mode off resets all state.
-//
-// Constraints worth thinking about:
-//   • force-graph mutates link objects (source/target become node refs).
-//     Your adjacency list must handle both string slugs and node objects.
-//   • BFS on the canvas thread is synchronous; keep it O(V + E).
-// ─────────────────────────────────────────────────────────────────────────────
 </script>

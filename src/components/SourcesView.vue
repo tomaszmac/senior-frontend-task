@@ -1,8 +1,3 @@
-<!--
-  Task 1 — Refactoring:
-    • fmtTime() is duplicated here, in ChunkPanel.vue, and in PartPanel.vue.
-      Extract to src/utils/format.js and import it.
--->
 <template>
   <div class="app-body">
     <div class="sources-view">
@@ -121,13 +116,22 @@
     }
   }
 
-  watch(selectedPart, async (sp) => {
+  watch(selectedPart, async (sp, _previousPart, onCleanup) => {
+    let stale = false;
+    onCleanup(() => {
+      stale = true;
+    });
+
     if (!sp) {
       partData.value = null;
+      partLoading.value = false;
       return;
     }
+
     partLoading.value = true;
     await new Promise(r => setTimeout(r, 80));
+    if (stale) return;
+
     partData.value = getPart(sp.source_name, sp.part_index);
     partLoading.value = false;
   });

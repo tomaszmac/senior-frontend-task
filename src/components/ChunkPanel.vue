@@ -1,10 +1,3 @@
-<!--
-  Task 1 — Refactoring:
-    • fmtTime() is duplicated here, in SourcesView.vue, and in PartPanel.vue.
-      Extract to src/utils/format.js and import it.
-    • TYPE_LABELS below duplicates the same five keys as TYPE_COLORS in Graph.vue.
-      Unify into src/utils/types.js.
--->
 <template>
   <div class="chunk-panel">
     <div class="panel-header">
