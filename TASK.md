@@ -129,6 +129,78 @@ Added `vue-i18n@9.14.5` because README Task 1c explicitly requires `vue-i18n` v9
 - `src/data/mock.js`: unchanged.
 - GSD-style review for Task 1 reported: Critical `0`, Warning `0`, Info `1`; the Info finding was this delivery-log cleanup.
 
+## Task 2 - Shortest Path BFS
+
+### Process
+
+- Read `README.md`, `ARCHITECTURE.md`, `docs/quality.md`, and the `TODO Task 2` block in `Graph.vue`.
+- Implemented Path mode inside `Graph.vue`.
+- Added a Path toggle overlay on the graph canvas.
+- Added two-click path selection: first click chooses the start node, second click chooses the end node and runs BFS.
+- Treated graph links as undirected when building the adjacency list.
+- Handled `force-graph` link endpoints as either raw slug strings or mutated node objects.
+- Highlighted path nodes and links, and dimmed non-path graph elements after a path is found.
+- Added a visible start-node ring while Path mode is waiting for the second click.
+- Added localized `Path` and `No path found` copy.
+- Kept Task 3 search untouched.
+- Kept `src/data/mock.js` unchanged.
+
+### AI Tool Use
+
+Used OpenAI Codex as the implementation, review, and browser-verification assistant.
+
+What worked well in the AI output:
+
+- It kept the BFS logic local to `Graph.vue`.
+- It handled the `force-graph` mutation case instead of assuming links always keep string endpoints.
+- It used stable endpoint-derived link keys for path highlighting.
+- The follow-up review caught that the implementation matched the README logic but was missing a clear first-click UX indicator.
+
+Feedback given to AI:
+
+- Keep this limited to README Task 2.
+- Do not implement Task 3 search.
+- Do not edit `src/data/mock.js`.
+- Keep normal node selection behavior when Path mode is off.
+- Add a visible marker after the first Path-mode click, because otherwise the user cannot tell which start node was selected.
+
+Selected prompts used:
+
+```text
+Implement README Task 2 only.
+
+Add a Path mode in Graph.vue. Two node clicks should choose the start and end,
+then run BFS over the graph as an undirected graph. Highlight the shortest path,
+dim everything else, and reset the whole path state when Path mode is turned off.
+
+Do not edit src/data/mock.js. Do not implement Task 3.
+```
+
+```text
+Review the current Task 2 diff against the intended logic.
+
+Check whether Path mode is local to Graph.vue, whether BFS is O(V + E),
+whether force-graph-mutated endpoints are handled, and whether normal node
+selection still works when Path mode is off.
+```
+
+```text
+Fix the Path-mode UX gap.
+
+After the first node click, show a clear start-node indicator immediately.
+Keep the rest of the graph normal until the second click resolves a full path.
+```
+
+### Dependency Justification
+
+No new dependency was added for Task 2. BFS uses the existing local graph data and Vue component state.
+
+### Verification
+
+- `npm run build`: passed with Vite `8.0.5`.
+- `git diff -- src/data/mock.js`: empty.
+- Browser check with `npm run dev`: Path toggle works, the first clicked node shows a start marker, the second clicked node resolves a highlighted shortest path, and turning Path mode off clears the path state.
+
 ## Earlier Setup Notes
 
 ### Harness Structure

@@ -44,6 +44,12 @@
     "referencedBy": "Referenced by",
     "sources": "Sources"
   },
+  "graph": {
+    "path": {
+      "toggle": "Path",
+      "noPathFound": "No path found"
+    }
+  },
   "partPanel": {
     "sourcePart": "Source Part"
   },

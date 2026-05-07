@@ -48,6 +48,12 @@
     "referencedBy": "Odwołania z",
     "sources": "Źródła"
   },
+  "graph": {
+    "path": {
+      "toggle": "Ścieżka",
+      "noPathFound": "Nie znaleziono ścieżki"
+    }
+  },
   "partPanel": {
     "sourcePart": "Część źródła"
   },
