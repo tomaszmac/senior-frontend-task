@@ -1,3 +1,8 @@
+<!--
+  Task 1 — Refactoring:
+    • fmtTime() is duplicated here, in ChunkPanel.vue, and in PartPanel.vue.
+      Extract to src/utils/format.js and import it.
+-->
 <template>
   <div class="app-body">
     <div class="sources-view">

@@ -17,6 +17,14 @@
     },
     "loading": "Loading...",
     "empty": "Select a node to explore",
+    "search": {
+      "placeholder": "Search nodes",
+      "clear": "Clear search",
+      "matches": {
+        "one": "{count} match",
+        "other": "{count} matches"
+      }
+    },
     "language": {
       "label": "Language",
       "switchToEnglish": "Switch to English",

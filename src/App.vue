@@ -13,6 +13,42 @@
       <span v-if="tab === 'graph'" class="status">
         {{ graphStatus }}
       </span>
+      <!--
+        TODO Task 3 — Live Graph Search
+        Add a search <input> here. Pass the query string down to <Graph> as a
+        new `filterQuery` prop. When the query is non-empty:
+          • Nodes whose title matches (case-insensitive) render at full opacity.
+          • All other nodes are dimmed to ~20% opacity inside nodeCanvasObject.
+          • Show "N matches" count here and an × clear button.
+        Keyboard: "/" focuses the input; Escape clears it.
+        Hint: no re-init needed — the canvas loop already reads props every frame.
+      -->
+      <div v-if="tab === 'graph'" class="header-search">
+        <div class="search-field">
+          <input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            type="text"
+            role="searchbox"
+            class="search-input"
+            :aria-label="t('app.search.placeholder')"
+            :placeholder="t('app.search.placeholder')"
+          >
+          <button
+            v-if="hasActiveSearch"
+            type="button"
+            class="search-clear"
+            :title="t('app.search.clear')"
+            :aria-label="t('app.search.clear')"
+            @click="clearSearch"
+          >
+            &times;
+          </button>
+        </div>
+        <span v-if="hasActiveSearch" class="search-count">
+          {{ searchMatchCountLabel }}
+        </span>
+      </div>
       <div class="language-switch" :aria-label="t('app.language.label')">
         <button
           v-for="lang in availableLocales"
@@ -26,22 +62,13 @@
         </button>
       </div>
 
-      <!--
-        TODO Task 3 — Live Graph Search
-        Add a search <input> here. Pass the query string down to <Graph> as a
-        new `filterQuery` prop. When the query is non-empty:
-          • Nodes whose title matches (case-insensitive) render at full opacity.
-          • All other nodes are dimmed to ~20% opacity inside nodeCanvasObject.
-          • Show "N matches" count here and an × clear button.
-        Keyboard: "/" focuses the input; Escape clears it.
-        Hint: no re-init needed — the canvas loop already reads props every frame.
-      -->
     </header>
 
     <div v-if="tab === 'graph'" class="app-body">
       <div class="graph-pane">
         <Graph
           :data="graphData"
+          :filter-query="searchQuery"
           :selected-slug="selectedSlug"
           @select="onSelect"
         />
@@ -63,7 +90,7 @@
 </template>
 
 <script setup>
-  import { computed, ref, watch } from 'vue';
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { graphData, getChunk } from './data/mock.js';
   import Graph from './components/Graph.vue';
@@ -75,6 +102,8 @@
   const selectedSlug = ref(null);
   const chunk = ref(null);
   const chunkLoading = ref(false);
+  const searchQuery = ref('');
+  const searchInputRef = ref(null);
   const availableLocales = ['en', 'pl'];
   const { t, locale } = useI18n();
 
@@ -83,6 +112,19 @@
     const links = pluralMessage(t, locale.value, 'app.status.links', graphData.links.length);
     return `${chunks}${t('common.separator')}${links}`;
   });
+
+  const normalizedSearchQuery = computed(() => searchQuery.value.trim().toLowerCase());
+  const hasActiveSearch = computed(() => normalizedSearchQuery.value.length > 0);
+  const graphSearchMatches = computed(() => {
+    if (!hasActiveSearch.value) return [];
+
+    return graphData.nodes.filter(node =>
+      node.title.toLowerCase().includes(normalizedSearchQuery.value)
+    );
+  });
+  const searchMatchCountLabel = computed(() =>
+    pluralMessage(t, locale.value, 'app.search.matches', graphSearchMatches.value.length)
+  );
 
   function setLocale(lang) {
     locale.value = lang;
@@ -95,6 +137,40 @@
   function onSelect(slug) {
     selectedSlug.value = selectedSlug.value === slug ? null : slug;
   }
+
+  function clearSearch() {
+    searchQuery.value = '';
+    searchInputRef.value?.focus();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof HTMLElement && (
+      target.isContentEditable ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+    );
+  }
+
+  function handleGlobalKeydown(event) {
+    if (tab.value !== 'graph') return;
+
+    if (event.key === '/' && !isEditableTarget(event.target)) {
+      event.preventDefault();
+      searchInputRef.value?.focus();
+      return;
+    }
+
+    if (event.key === 'Escape' && searchQuery.value) {
+      searchQuery.value = '';
+    }
+  }
+
+  onMounted(() => {
+    window.addEventListener('keydown', handleGlobalKeydown);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleGlobalKeydown);
+  });
 
   watch(selectedSlug, async (slug) => {
     if (!slug) {

@@ -21,6 +21,16 @@
     },
     "loading": "Ładowanie...",
     "empty": "Wybierz węzeł, żeby zobaczyć szczegóły",
+    "search": {
+      "placeholder": "Szukaj węzłów",
+      "clear": "Wyczyść wyszukiwanie",
+      "matches": {
+        "one": "{count} wynik",
+        "few": "{count} wyniki",
+        "many": "{count} wyników",
+        "other": "{count} wyniku"
+      }
+    },
     "language": {
       "label": "Język",
       "switchToEnglish": "Przełącz na angielski",

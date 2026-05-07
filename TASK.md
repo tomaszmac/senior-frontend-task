@@ -1,5 +1,28 @@
 # Task Notes
 
+## Workflow Used Across Tasks
+
+Each README task was handled as a separate, reviewable slice. I used a lightweight GSD-assisted workflow rather than a full milestone process:
+
+1. Clarify the task with `$gsd-explore`, using the README, project docs, and current code as the source of truth.
+2. Create a scoped implementation plan with `$gsd-plan-phase <task-number> --mvp --skip-research`.
+3. Review the plan before implementation and adjust it if the task boundaries were unclear.
+4. Execute the approved plan with `$gsd-execute-phase <task-number>`, keeping the work limited to the active README task.
+5. Run a focused review with `$gsd-code-review <task-number> --depth=standard`.
+6. Validate the user-facing behavior with `$gsd-verify-work <task-number>` and manual browser checks where relevant.
+7. Update `TASK.md` with the process notes, AI usage, feedback, dependency decisions, and verification results.
+8. Run the project checks from the README, mainly `npm run build`, plus targeted browser verification.
+9. Stage only the files that belong to the current task.
+10. Commit each task separately with a descriptive message, for example `feat: implement task 2 shortest path BFS`.
+
+### AI tools used
+
+- GSD was the main workflow skill. I used it to move from task exploration to planning, implementation, review, verification, and a separate commit for each README task. (available on github)
+- Harness Engineering was used at the start to create a compact project map for future agents: `AGENTS.md`, `ARCHITECTURE.md`, `docs/INDEX.md`, and `docs/quality.md`. (personal skill).
+- Humanizer was used when writing reviewer-facing notes in `TASK.md`, mainly to keep the AI usage and prompt excerpts concise and natural. (available on github)
+- Caveman-style compression was used for short planning and review summaries where a compact handoff was more useful than long prose. (available on github)
+- Chrome DevTools MCP was used for browser verification against the local Vite app, including interactive checks for graph behavior, Path mode, and live search. (available on github)
+
 ## Task 1 - Refactor + i18n
 
 ### Process
@@ -200,6 +223,64 @@ No new dependency was added for Task 2. BFS uses the existing local graph data a
 - `npm run build`: passed with Vite `8.0.5`.
 - `git diff -- src/data/mock.js`: empty.
 - Browser check with `npm run dev`: Path toggle works, the first clicked node shows a start marker, the second clicked node resolves a highlighted shortest path, and turning Path mode off clears the path state.
+
+## Task 3 - Live Graph Search
+
+### Process
+
+- Read `AGENTS.md`, `README.md`, `ARCHITECTURE.md`, `docs/INDEX.md`, `docs/quality.md`, and `.planning/phases/03-task-3-live-search/PLAN.md`.
+- Added a Graph-tab-only header search in `App.vue` beside the graph status.
+- Matched only `node.title`, case-insensitively, with whitespace-only input treated as empty search.
+- Added live match counting, a clear button, `/` focus, and `Escape` clear.
+- Passed the query to `Graph.vue` through `filterQuery`.
+- Dimmed non-matching nodes and added a subtle ring for matches.
+- Preserved Task 2 Path mode priority so resolved path nodes stay visually strongest even with an active search.
+- Added responsive header styles so the search remains visible on narrow widths.
+- Kept `src/data/mock.js` unchanged.
+
+### AI Tool Use
+
+Used OpenAI Codex as the implementation and verification assistant.
+
+What worked well in the AI output:
+
+- It kept matching scoped to graph node titles instead of expanding into source or markdown search.
+- It kept the search state in `App.vue`, where the header and match counter live.
+- It refreshed the settled force-graph canvas when the query changes.
+- It kept Path mode and Search mode composable instead of replacing the Task 2 rendering logic.
+
+Feedback given to AI:
+
+- Keep Task 3 scoped and do not refactor unrelated components.
+- Do not edit `src/data/mock.js`.
+- Preserve Task 2 Path mode behavior.
+- Use existing i18n and pluralization patterns.
+- Do not add dependencies.
+
+Selected prompt used:
+
+```text
+Use the $gsd-execute-phase skill for Task 3 in this workspace.
+
+Implement README Task 3 from the existing plan. Keep search limited to node.title
+with case-insensitive matching. Preserve Task 2 Path mode behavior, keep Path
+highlighting visually stronger than search dimming, add localized match count
+and clear-button copy, verify the change with build and browser checks, update
+TASK.md, and commit Task 3 separately if verification passes.
+```
+
+### Dependency Justification
+
+No new dependency was added for Task 3. The live search uses Vue state, computed values, and the existing force-graph rendering hooks.
+
+### Verification
+
+- `npm run build`: passed with Vite `8.0.5`.
+- Browser check with `npm run dev`: search appears only on the Graph tab, updates the count live, highlights matching title nodes, treats whitespace as empty, shows `0 wyników` for no matches, clears through the clear button and `Escape`, focuses with `/`, and hides on the Sources tab.
+- Browser check with `npm run dev`: Path mode still toggles, resolves a shortest path, and remains visually clear with an active search query.
+- Browser check with a narrow viewport: header controls wrap without overlap, and the search remains visible and usable.
+- `git diff -- src/data/mock.js`: empty.
+- `git diff -- package.json package-lock.json`: empty.
 
 ## Earlier Setup Notes
 

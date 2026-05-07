@@ -1,3 +1,10 @@
+<!--
+  Task 1 — Refactoring:
+    TYPE_COLORS below duplicates the same five keys as TYPE_LABELS in ChunkPanel.vue.
+    Extract both into a unified src/utils/types.js config and import from there.
+
+  Task 2 — Algorithm: see the TODO block inside <script setup>.
+-->
 <template>
   <div class="graph-shell">
     <div ref="containerEl" class="graph-canvas" />
@@ -26,8 +33,8 @@ import { DEFAULT_TYPE_COLOR, TYPE_COLORS } from '../utils/types.js'
 const props = defineProps({
   data:         { type: Object, default: () => ({ nodes: [], links: [] }) },
   selectedSlug: { type: String, default: null },
-  // Task 3: add filterQuery prop here and use it in nodeCanvasObject
-  // filterQuery: { type: String, default: '' },
+  // Task 3 - Live Graph Search: App.vue owns the header query; Graph.vue only renders it.
+  filterQuery: { type: String, default: '' },
 })
 const emit = defineEmits(['select'])
 const { t } = useI18n()
@@ -41,10 +48,18 @@ const pathLinkKeys = ref(new Set())
 const noPathFound = ref(false)
 const showNoPath = computed(() => pathModeActive.value && noPathFound.value)
 const PATH_HIGHLIGHT_COLOR = TYPE_COLORS.process_stage
+const SEARCH_MATCH_COLOR = '#7db3f7'
+const normalizedFilterQuery = computed(() => props.filterQuery.trim().toLowerCase())
+const hasActiveFilter = computed(() => normalizedFilterQuery.value.length > 0)
 let fg = null
 
 function nodeColor(node) {
   return TYPE_COLORS[node.type] || DEFAULT_TYPE_COLOR
+}
+
+function nodeMatchesFilter(node) {
+  if (!hasActiveFilter.value) return true
+  return node.title.toLowerCase().includes(normalizedFilterQuery.value)
 }
 
 function endpointSlug(endpoint) {
@@ -218,21 +233,30 @@ onMounted(() => {
         pathModeActive.value && !pathEnd.value && pathStart.value === node.slug
       const isPathHighlighted = isPathNode || isPendingPathStart
       const isSelected = !pathModeActive.value && node.slug === props.selectedSlug
-      // Task 3: compute match opacity here using filterQuery
-      // const isMatch = !filterQuery ||
-      //   node.title.toLowerCase().includes(filterQuery.toLowerCase())
-      // ctx.globalAlpha = isMatch ? 1 : 0.15
+      const isSearchMatch = hasActiveFilter.value && nodeMatchesFilter(node)
 
       const color = nodeColor(node)
       const r = isSelected ? 7 : 4
+      const dimForResolvedPath = pathResolved && !isPathNode
+      const dimForSearch =
+        hasActiveFilter.value && !isSearchMatch && !isPathHighlighted
+      const shouldDimNode = dimForResolvedPath || dimForSearch
 
       ctx.save()
-      ctx.globalAlpha = pathResolved && !isPathNode ? 0.2 : 1
+      ctx.globalAlpha = shouldDimNode ? 0.2 : 1
 
       ctx.beginPath()
       ctx.arc(node.x, node.y, r, 0, 2 * Math.PI)
       ctx.fillStyle = color
       ctx.fill()
+
+      if (isSearchMatch && !isSelected && !isPathHighlighted) {
+        ctx.beginPath()
+        ctx.arc(node.x, node.y, r + 3, 0, 2 * Math.PI)
+        ctx.strokeStyle = SEARCH_MATCH_COLOR
+        ctx.lineWidth = 1
+        ctx.stroke()
+      }
 
       if (isSelected || isPathHighlighted) {
         ctx.beginPath()
@@ -250,7 +274,6 @@ onMounted(() => {
         ctx.fillText(node.title, node.x, node.y + r + fontSize + 1)
       }
 
-      // Task 3: reset ctx.globalAlpha = 1 after drawing each node
       ctx.restore()
     })
     .nodeCanvasObjectMode(() => 'replace')
@@ -282,4 +305,31 @@ watch(() => props.selectedSlug, slug => {
   const node = fg.graphData().nodes.find(n => n.slug === slug)
   if (node?.x != null) fg.centerAt(node.x, node.y, 400)
 })
+
+// Task 3 - Live Graph Search: nudge the canvas after query changes even when physics has settled.
+watch(() => props.filterQuery, () => {
+  refreshGraph()
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TODO Task 2 — Shortest Path (BFS)
+//
+// Add a "Path" toggle button (above or overlaid on the graph). When active:
+//
+//   1. Track a `pathStart` and `pathEnd` slug via two successive node clicks.
+//   2. Build an adjacency list from props.data.links (treat edges as undirected).
+//   3. Run BFS from pathStart to pathEnd; record the predecessor map to
+//      reconstruct the path.
+//   4. Expose the path as a Set of slugs and a Set of link ids.
+//   5. In nodeCanvasObject: full opacity + bright ring for path nodes;
+//      dim (opacity 0.2) for all others.
+//   6. In linkColor / linkWidth: highlight path edges; dim the rest.
+//   7. If no path exists, show a "No path found" overlay.
+//   8. Toggling Path Mode off resets all state.
+//
+// Constraints worth thinking about:
+//   • force-graph mutates link objects (source/target become node refs).
+//     Your adjacency list must handle both string slugs and node objects.
+//   • BFS on the canvas thread is synchronous; keep it O(V + E).
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
